@@ -20,9 +20,9 @@ push(RegIds, Message, Key) ->
             ExecTime = timer:now_diff(EndTime, StartTime)/1000,
             ok = exometer:update([ndc, alert, gcm_request_time], ExecTime),
             Json = jsx:decode(response_to_binary(Body)),
-            FirstResult = lists:nth(1, proplists:get_value("results", Json)),
-            MessageId = proplists:get_value("message_id", FirstResult),
-            error_logger:info_msg("The request with message_id ~p~n took ~p~n milliseconds", [MessageId, ExecTime]),
+            FirstResult = lists:nth(1, proplists:get_value(<<"results">>, Json)),
+            MessageId = proplists:get_value(<<"message_id">>, FirstResult),
+            error_logger:info_msg("The request with message_id ~p took ~p milliseconds", [MessageId, ExecTime]),
             error_logger:info_msg("Result was: ~p~n", [Json]),
             {ok, result_from(Json)};
         {ok, {{_, 400, _}, _, Body}} ->
