@@ -13,9 +13,12 @@
 push(RegIds, Message, Key) ->
     Request = jsx:encode([{<<"registration_ids">>, RegIds}|Message]),
     ApiKey = string:concat("key=", Key),
-
+    StartTime = now(),
     try httpc:request(post, {?BASEURL, [{"Authorization", ApiKey}], "application/json", Request}, [], []) of
         {ok, {{_, 200, _}, _Headers, Body}} ->
+            EndTime = now(),
+            ExecTime = timer:now_diff(EndTime, StartTime)/1000,
+            ok = exometer:update([ndc, alert, gcm_request_time], ExecTime),
             Json = jsx:decode(response_to_binary(Body)),
             error_logger:info_msg("Result was: ~p~n", [Json]),
             {ok, result_from(Json)};
