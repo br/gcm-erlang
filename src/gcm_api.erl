@@ -18,12 +18,17 @@ push(RegIds, Message, Key) ->
         {ok, {{_, 200, _}, _Headers, Body}} ->
             EndTime = now(),
             ExecTime = timer:now_diff(EndTime, StartTime)/1000,
-            ok = exometer:update([ndc, alert, gcm_request_time], ExecTime),
             Json = jsx:decode(response_to_binary(Body)),
-            FirstResult = lists:nth(1, proplists:get_value(<<"results">>, Json)),
-            MessageId = proplists:get_value(<<"message_id">>, FirstResult),
-            error_logger:info_msg("The request with message_id ~p took ~p milliseconds", [MessageId, ExecTime]),
-            error_logger:info_msg("Result was: ~p~n", [Json]),
+            case  ExecTime > 5000 of 
+             true ->     
+                  ok = exometer:update([ndc, alert, gcm_request_time], ExecTime),
+                  FirstResult = lists:nth(1, proplists:get_value(<<"results">>, Json)),
+                  MessageId = proplists:get_value(<<"message_id">>, FirstResult),
+                  error_logger:warning_msg("The request with message_id ~p took ~p milliseconds", [MessageId, ExecTime]),
+                  error_logger:warning_msg("Result was: ~p~n", [Json]);
+              false -> 
+                    ok
+            end,
             {ok, result_from(Json)};
         {ok, {{_, 400, _}, _, Body}} ->
             error_logger:error_msg("Error in request. Reason was: Bad Request - ~p~n", [Body]),
