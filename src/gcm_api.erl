@@ -14,6 +14,7 @@ push(RegIds, Message, Key) ->
     Request = jsx:encode([{<<"registration_ids">>, RegIds}|Message]),
     ApiKey = string:concat("key=", Key),
     StartTime = now(),
+    io:fwrite(jsx:decode(response_to_binary(Message))),
     try httpc:request(post, {?BASEURL, [{"Authorization", ApiKey}], "application/json", Request}, [], []) of
         {ok, {{_, 200, _}, _Headers, Body}} ->
             EndTime = now(),
